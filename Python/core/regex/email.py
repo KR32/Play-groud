@@ -11,7 +11,7 @@ def validate_email(email):
 
 
 def looping():
-    with open('D:\\App_Folders\\vscode\\Python\\vumaasha-s-py\\workouts\\regex\\data.txt') as f:
+    with open('data.txt') as f:
         for line in f:
             # For Python3, use print(line)
             validate_email(line)
