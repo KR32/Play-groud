@@ -1,0 +1,12 @@
+a=10
+b=20
+print(a+b)#30
+print(b+a)#30
+print(a-b)#-10
+print(b-a)#10
+print(a/b)#0.5
+print(a//b)#0
+print(b/a)#2.0
+print(b//a)#2
+print(a*b)#200
+print(b*a)#200
