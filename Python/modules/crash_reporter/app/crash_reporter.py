@@ -3,13 +3,15 @@ import sys
 import traceback
 import inspect
 import logging
+from pathlib import Path
 
+import emails
+from emails import JinjaTemplate
 from starlette.requests import Request
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
-from app.core import config
-from app.utils.email_utils import send_instant_crash_report_mail
+import config
 # from urlparse import urlparse  # Python 2
 
 logger = logging.getLogger(__name__)
@@ -181,7 +183,7 @@ def prepare_log_file(content)->bool:
                 # removing  \n suffix , white spaces, empty lines
                 line = line.rstrip('\n')
                 line = line.strip()
-                if not line is '':
+                if line != "":
                     existing_logs.append(line)
 
         if check_duplicate_entry(new_log,existing_logs):
@@ -207,3 +209,77 @@ def prepare_log_file(content)->bool:
         # creating new log file 
         with open(file_name, 'a+') as fresh_file:
             fresh_file.write(content)
+
+def send_email(email_to: str, subject_template="", html_template="", environment={}, email_cc=None, email_bcc=None):
+    assert config.EMAILS_ENABLED, "no provided configuration for email variables"
+    if email_cc:
+        email_cc = email_cc.split(',')
+    if email_bcc:
+        email_bcc = email_bcc.split(',')
+
+    from_name, from_email = (config.EMAIL_FROM_NAME, config.EMAIL_FROM_EMAIL)
+
+    logger.info(f'From Name: {from_name}, From Email: {from_email}')
+        
+    message = emails.Message(
+        subject=JinjaTemplate(subject_template),
+        html=JinjaTemplate(html_template),
+        mail_from=(from_name, from_email),
+        cc=email_cc,
+        bcc=email_bcc
+    )
+    smtp_options = {"host": config.SMTP_HOST, "port": config.SMTP_PORT}
+    if config.SMTP_TLS:
+        smtp_options["tls"] = True
+    if config.SMTP_USER:
+        smtp_options["user"] = config.SMTP_USER
+    if config.SMTP_PASSWORD:
+        smtp_options["password"] = config.SMTP_PASSWORD
+    response = message.send(to=email_to, render=environment, smtp=smtp_options)
+    logging.info(f"send email result: {response.__dict__}")
+
+    return response
+
+
+
+
+def send_instant_crash_report_mail(report):
+    if config.INSTANT_MAIL_TO:
+        mail_to = config.INSTANT_MAIL_TO.split(',')
+        subject = f"Internal Server Error - {report['host']}"
+        email_template_path = Path(config.EMAIL_TEMPLATES_DIR) / "crash_report.html"
+        with open(email_template_path) as f:
+            template_str = f.read()
+        send_email(
+            email_to=mail_to,
+            html_template=template_str,
+            subject_template=subject,
+            environment=report
+        )
+    else:
+        logger.debug("Crash reporter has not configured properly to send emails!; Please specify the recipient(s)")
+
+
+
+def send_crash_log_mail(file_name:str):
+    if config.ONCE_A_DAY_MAIL_TO:
+        mail_to = config.ONCE_A_DAY_MAIL_TO.split(',')
+        subject = f"Crash Report for - {datetime.now().date()-timedelta(1)}"
+        message = emails.Message(
+            subject=JinjaTemplate(subject),
+            html=f"<p>crash logs for {str(datetime.now().date()-timedelta(1))}</p>",
+            mail_from=('TalentFind System', config.EMAILS_FROM_EMAIL),
+            mail_to=mail_to
+        )
+        message.attach(filename=f"{str(datetime.now().date())}.txt",data=open(file_name,'rb'))
+        smtp_options = {"host": config.SMTP_HOST, "port": config.SMTP_PORT}
+        if config.SMTP_TLS:
+            smtp_options["tls"] = True
+        if config.SMTP_USER:
+            smtp_options["user"] = config.SMTP_USER
+        if config.SMTP_PASSWORD:
+            smtp_options["password"] = config.SMTP_PASSWORD
+        response = message.send(smtp=smtp_options)
+        logging.info(f"send email result: {response.__dict__}")
+    else:
+        logger.debug("Crash reporter has not configured properly to send emails!; Please specify the recipient(s)")

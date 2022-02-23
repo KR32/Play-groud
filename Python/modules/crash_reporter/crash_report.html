@@ -1,0 +1,93 @@
+<!DOCTYPE Content-Type: text/html; charset="utf-8">
+<html>
+
+<head>
+    <style>
+        * {
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+
+        body {
+            background-color: #393939 !important;
+            font-family: "Calibri Light", sans-serif;
+            border: 2px solid #666;
+        }
+
+        .main {
+            min-width: 99%;
+            max-height: 99%;
+            overflow-y: hidden;
+            overflow-x: auto;
+        }
+
+        .column {
+            float: left;
+            min-width: 99%;
+            padding: 10px;
+            color: #fff;
+            background-color: #000000;
+            border-radius: 2ch;
+            border-color: black;
+            border-style: groove;
+            border: 5px;
+            margin: 6px;
+        }
+
+        div::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        div::-webkit-scrollbar-track {
+            background: rgb(63, 63, 62);
+        }
+
+        div::-webkit-scrollbar-thumb {
+            background-color: rgb(154, 154, 155);
+            border-radius: 20px;
+            border: 3px solid rgb(199, 198, 197);
+        }
+
+        pre::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        pre::-webkit-scrollbar-track {
+            background: rgb(63, 63, 62);
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background-color: rgb(154, 154, 155);
+            border-radius: 20px;
+            border: 3px solid rgb(199, 198, 197);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div id="detail" class="column">
+            <h1 style="margin-left: 5%;">Crash Report from <a href="{{host}}">{{app}}</a></h1>
+            <pre style="min-width: max-content;">
+    App               :&nbsp;<a href="{{host}}" id="app_name">{{app}}</a>
+    Request           :&nbsp;<a href="{{req_url}}"  id="url">{{req_type}} : {{req_url}}</a>
+    Error Type        :&nbsp;<label id="error_type">{{error_type}}</label>
+    Query Params      :&nbsp;<label id="query_params">{{query_params}}</label>
+    path params       :&nbsp;<label id="path_params">{{path_params}}</label>
+    File              :&nbsp;<label id="file">{{file}}</label>
+    Error Line Number :&nbsp;<label id="error_line_number">{{error_line_number}}</label>
+    Error Line        :&nbsp;<label id="error_line">{{error_line}}</label>
+            </pre>
+            <h1>HEADERS :</h1>
+            <pre id="headers" style="min-width: max-content;">{{headers}}</pre>
+            <h1>ERROR MESSAGE :</h1>
+            <pre id="error_message" style="min-width: max-content;">{{error_message}}</pre>
+            <h1>SOURCE CODE :</h1>
+            <div style="min-width: max-content;">{{source_code}}</div>
+            <h1>TRACEBACK :</h1>
+            <div style="min-width: max-content;">{{raw_trackback_content}}</div>
+        </div>
+    </div>
+</body>
+
+</html>
